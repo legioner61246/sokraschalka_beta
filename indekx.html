@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сокращалка ссылок</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .card { background: #1e293b; padding: 2.5rem; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 100%; max-width: 480px; }
+        h1 { font-size: 1.5rem; margin-bottom: 1.5rem; text-align: center; color: #38bdf8; }
+        .input-group { display: flex; gap: 10px; margin-bottom: 1.5rem; }
+        input { flex: 1; padding: 12px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: #fff; font-size: 1rem; outline: none; }
+        input:focus { border-color: #38bdf8; }
+        button { background: #0284c7; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #0369a1; }
+        #result { margin-top: 1rem; padding: 12px; background: #0f172a; border-radius: 6px; display: none; word-break: break-all; }
+        #result a { color: #38bdf8; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1> Скратить ссылку</h1>
+        <div class="input-group">
+            <input type="url" id="urlInput" placeholder="вставь длинную ссылку..." required>
+            <button onclick="shortenUrl()">сократить</button>
+        </div>
+        <div id="result">
+            готовая ссылка: <a id="shortLink" href="" target="_blank"></a>
+        </div>
+    </div>
+
+    <script>
+        async function shortenUrl() {
+            const url = document.getElementById('urlInput').value;
+            const resultDiv = document.getElementById('result');
+            const shortLink = document.getElementById('shortLink');
+            
+            if (!url) return alert('ссылку!');
+
+            try {
+                const response = await fetch('/shorten', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const fullShortUrl = window.location.origin + '/' + (data.short_key || data.key || data.short_url);
+                    shortLink.href = fullShortUrl;
+                    shortLink.innerText = fullShortUrl;
+                    resultDiv.style.display = 'block';
+                } else {
+                    alert(data.detail || 'эрор');
+                }
+            } catch (err) {
+                alert('нет связи');
+            }
+        }
+    </script>
+</body>
+</html>
